@@ -1,0 +1,67 @@
+{
+  "name": "clawlet",
+  "version": "0.1.0",
+  "description": "AI-native Ethereum wallet for autonomous agents to transact with each other",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "clawlet": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ethereum",
+    "wallet",
+    "ai",
+    "agent",
+    "erc-8004",
+    "autonomous",
+    "blockchain",
+    "viem",
+    "web3"
+  ],
+  "author": "Clawlet Team",
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.21.0",
+    "zod": "^3.23.0",
+    "commander": "^12.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.1.0",
+    "dotenv": "^16.4.0",
+    "@noble/hashes": "^1.5.0",
+    "@noble/secp256k1": "^2.1.0",
+    "@scure/bip32": "^1.5.0",
+    "@scure/bip39": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
