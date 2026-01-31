@@ -115,5 +115,14 @@ export {
   type BatchPaymentResult,
 } from './utils/batch.js';
 
+// ENS utilities
+export {
+  ENSResolver,
+  ENS_AGENT_KEYS,
+  getAgentMetadata,
+  type ENSResolverConfig,
+  type ENSRecord,
+} from './utils/ens.js';
+
 // Re-export commonly used viem types
 export type { Address, Hash, Hex } from 'viem';
