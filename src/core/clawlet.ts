@@ -2,6 +2,7 @@ import { parseEther, formatEther, type Address, type Hash, type Hex } from 'viem
 
 import { ClawletWallet } from './wallet.js';
 import { TrustSystem } from './trust.js';
+import { OwnerController, type OwnerConfig } from '../utils/owner.js';
 import type {
   ClawletConfig,
   TransactionResult,
@@ -33,10 +34,16 @@ import type {
 export class Clawlet {
   private wallet: ClawletWallet;
   private trust: TrustSystem;
+  private owner: OwnerController | null = null;
 
-  constructor(config: ClawletConfig) {
+  constructor(config: ClawletConfig & { owner?: OwnerConfig }) {
     this.wallet = new ClawletWallet(config);
     this.trust = new TrustSystem(this.wallet.getPublicClient(), config.trustSettings);
+
+    // Set up owner controller if provided
+    if (config.owner) {
+      this.owner = new OwnerController(config.owner);
+    }
 
     // Add any pre-configured allowed recipients to trust whitelist
     if (config.guardrails?.allowedRecipients) {
@@ -411,6 +418,176 @@ export class Clawlet {
    */
   getTrustSystem(): TrustSystem {
     return this.trust;
+  }
+
+  // ============================================================================
+  // Owner Controls (for human operators to withdraw/manage)
+  // ============================================================================
+
+  /**
+   * Set owner controller
+   */
+  setOwner(config: OwnerConfig): void {
+    this.owner = new OwnerController(config);
+  }
+
+  /**
+   * Get owner controller
+   */
+  getOwner(): OwnerController | null {
+    return this.owner;
+  }
+
+  /**
+   * Check if wallet has an owner configured
+   */
+  hasOwner(): boolean {
+    return this.owner !== null;
+  }
+
+  /**
+   * Check if wallet is paused by owner
+   */
+  isPaused(): boolean {
+    return this.owner?.getIsPaused() ?? false;
+  }
+
+  /**
+   * Owner: Withdraw ETH to owner's address
+   */
+  async ownerWithdrawETH(
+    amount: bigint,
+    ownerSignature: Address
+  ): Promise<{ requestId: string; status: string; hash?: Hash }> {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+    if (!this.owner.isOwner(ownerSignature)) {
+      throw new Error('Not authorized');
+    }
+
+    const ownerAddress = this.owner.getConfig().ownerAddress;
+    const request = this.owner.requestWithdrawETH(amount, ownerAddress, ownerSignature);
+
+    if (request.status === 'approved') {
+      const executed = await this.owner.executeWithdrawal(
+        request.id,
+        this.wallet.getWalletClient(),
+        this.wallet.getPublicClient()
+      );
+      return {
+        requestId: executed.id,
+        status: executed.status,
+        hash: executed.txHash,
+      };
+    }
+
+    return {
+      requestId: request.id,
+      status: request.status,
+    };
+  }
+
+  /**
+   * Owner: Withdraw tokens to owner's address
+   */
+  async ownerWithdrawToken(
+    token: Address,
+    amount: bigint,
+    ownerSignature: Address
+  ): Promise<{ requestId: string; status: string; hash?: Hash }> {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+    if (!this.owner.isOwner(ownerSignature)) {
+      throw new Error('Not authorized');
+    }
+
+    const ownerAddress = this.owner.getConfig().ownerAddress;
+    const request = this.owner.requestWithdrawToken(token, amount, ownerAddress, ownerSignature);
+
+    if (request.status === 'approved') {
+      const executed = await this.owner.executeWithdrawal(
+        request.id,
+        this.wallet.getWalletClient(),
+        this.wallet.getPublicClient()
+      );
+      return {
+        requestId: executed.id,
+        status: executed.status,
+        hash: executed.txHash,
+      };
+    }
+
+    return {
+      requestId: request.id,
+      status: request.status,
+    };
+  }
+
+  /**
+   * Owner: Withdraw all ETH (minus gas buffer) to owner
+   */
+  async ownerWithdrawAll(ownerSignature: Address): Promise<Hash> {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+    if (!this.owner.isPrimaryOwner(ownerSignature)) {
+      throw new Error('Only primary owner can withdraw all');
+    }
+
+    const balance = await this.getBalance();
+    const gasBuffer = parseEther('0.01');
+    const toWithdraw = balance > gasBuffer ? balance - gasBuffer : 0n;
+
+    if (toWithdraw === 0n) {
+      throw new Error('Insufficient balance to withdraw');
+    }
+
+    const result = await this.ownerWithdrawETH(toWithdraw, ownerSignature);
+    if (!result.hash) {
+      throw new Error('Withdrawal not executed');
+    }
+    return result.hash;
+  }
+
+  /**
+   * Owner: Emergency drain all funds
+   */
+  async ownerEmergencyDrain(
+    ownerSignature: Address,
+    tokens?: Address[]
+  ): Promise<{ ethHash?: Hash; tokenHashes: Hash[] }> {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+
+    return this.owner.emergencyDrain(
+      this.wallet.getWalletClient(),
+      this.wallet.getPublicClient(),
+      ownerSignature,
+      tokens
+    );
+  }
+
+  /**
+   * Owner: Pause all agent transactions
+   */
+  ownerPause(ownerSignature: Address): void {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+    this.owner.pause(ownerSignature);
+  }
+
+  /**
+   * Owner: Unpause agent transactions
+   */
+  ownerUnpause(ownerSignature: Address): void {
+    if (!this.owner) {
+      throw new Error('No owner configured');
+    }
+    this.owner.unpause(ownerSignature);
   }
 }
 

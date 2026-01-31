@@ -393,6 +393,103 @@ wallet.watchIncomingPayments((from, amount, hash) => {
 });
 ```
 
+## Owner Controls (Withdrawals)
+
+Human operators can withdraw funds from agent wallets:
+
+```typescript
+import { Clawlet, createSimpleOwner, createMultiSigOwner, parseEther } from 'clawlet';
+
+// Create wallet with owner
+const wallet = new Clawlet({
+  privateKey: process.env.AGENT_KEY,
+  network: 'mainnet',
+  owner: {
+    ownerAddress: '0xYourAddress', // Can withdraw funds
+    canPause: true,
+    canModifyGuardrails: true,
+  },
+});
+
+// Or set owner later
+wallet.setOwner({
+  ownerAddress: '0xYourAddress',
+  coOwnerAddress: '0xBackupAddress', // Optional co-owner
+  multiSigThresholdWei: parseEther('1'), // Require both for >1 ETH
+  canPause: true,
+});
+
+// Owner: Withdraw ETH
+const result = await wallet.ownerWithdrawETH(
+  parseEther('0.5'),
+  '0xYourAddress' // Owner's address as authorization
+);
+console.log(`Withdrawal tx: ${result.hash}`);
+
+// Owner: Withdraw all (minus gas buffer)
+const hash = await wallet.ownerWithdrawAll('0xYourAddress');
+
+// Owner: Withdraw specific token
+await wallet.ownerWithdrawToken(
+  '0xTokenAddress',
+  1000000n,
+  '0xYourAddress'
+);
+
+// Owner: Emergency drain everything
+const drainResult = await wallet.ownerEmergencyDrain(
+  '0xYourAddress',
+  ['0xToken1', '0xToken2'] // Optional: tokens to drain
+);
+
+// Owner: Pause/unpause agent
+wallet.ownerPause('0xYourAddress');
+wallet.ownerUnpause('0xYourAddress');
+
+// Check if paused
+if (wallet.isPaused()) {
+  console.log('Agent is paused by owner');
+}
+```
+
+### Multi-Sig Withdrawals
+
+For high-value agent wallets, require two approvals:
+
+```typescript
+import { createMultiSigOwner } from 'clawlet';
+
+const wallet = new Clawlet({
+  privateKey: process.env.AGENT_KEY,
+  owner: {
+    ownerAddress: '0xPrimaryOwner',
+    coOwnerAddress: '0xCoOwner',
+    multiSigThresholdWei: parseEther('1'), // 1+ ETH needs both
+    canPause: true,
+  },
+});
+
+const owner = wallet.getOwner()!;
+
+// Primary owner requests withdrawal
+const request = owner.requestWithdrawETH(
+  parseEther('5'),
+  '0xPrimaryOwner',
+  '0xPrimaryOwner'
+);
+console.log(`Request ${request.id}: ${request.status}`); // 'pending'
+
+// Co-owner approves
+owner.approveWithdrawal(request.id, '0xCoOwner');
+
+// Now it can be executed
+await owner.executeWithdrawal(
+  request.id,
+  wallet.getWallet().getWalletClient(),
+  wallet.getWallet().getPublicClient()
+);
+```
+
 ## Docker Deployment
 
 Deploy agent wallets in containers:
@@ -425,6 +522,7 @@ docker run -it -e CLAWLET_KEY=0x... clawlet-agent
 3. **Trust verification** - Always verify unknown agents via ERC-8004
 4. **Testnet first** - Test on Sepolia before mainnet
 5. **Encrypted storage** - Use the keystore utilities for key storage
+6. **Configure an owner** - Always set an owner address so you can withdraw earnings and emergency drain if needed
 
 ## Environment Variables
 
@@ -471,6 +569,18 @@ See the `examples/` directory for complete integration examples:
 - `signMessage(message)` - Sign message
 - `on(handler)` - Subscribe to events
 - `watchIncomingPayments(callback, interval?)` - Watch payments
+
+#### Owner Methods
+- `setOwner(config)` - Configure owner/operator
+- `getOwner()` - Get owner controller
+- `hasOwner()` - Check if owner configured
+- `isPaused()` - Check if paused by owner
+- `ownerWithdrawETH(amount, ownerAddr)` - Withdraw ETH
+- `ownerWithdrawToken(token, amount, ownerAddr)` - Withdraw tokens
+- `ownerWithdrawAll(ownerAddr)` - Withdraw all ETH
+- `ownerEmergencyDrain(ownerAddr, tokens?)` - Emergency drain
+- `ownerPause(ownerAddr)` - Pause agent transactions
+- `ownerUnpause(ownerAddr)` - Resume agent transactions
 
 ### Utility Functions
 - `batchPay(wallet, payments, options?)` - Execute batch payments

@@ -124,6 +124,17 @@ export {
   type ENSRecord,
 } from './utils/ens.js';
 
+// Owner/Operator controls
+export {
+  OwnerController,
+  createSimpleOwner,
+  createMultiSigOwner,
+  formatWithdrawal,
+  type OwnerConfig,
+  type WithdrawalRequest,
+  type OwnerAction,
+} from './utils/owner.js';
+
 // Token swap utilities (Uniswap V3)
 export {
   swapTokens,
