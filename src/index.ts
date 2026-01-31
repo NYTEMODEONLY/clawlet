@@ -159,5 +159,28 @@ export {
   type SwapResult,
 } from './utils/swap.js';
 
+// ClawletVault SDK (on-chain security)
+export {
+  ClawletVaultSDK,
+  CLAWLET_VAULT_ABI,
+  CLAWLET_VAULT_ADDRESSES,
+  getVaultAddress,
+  isVaultDeployed,
+  getDeployedNetworks,
+  type Vault,
+  type VaultSummary,
+  type CreateVaultParams,
+  type CreateVaultResult,
+  type AgentSendParams,
+  type AgentSendTokenParams,
+  type VaultTxResult,
+  type EmergencyDrainResult,
+  type ClawletVaultSDKConfig,
+  type VaultEventType,
+  type VaultEvent,
+  type AgentSentEvent,
+  type DepositedEvent,
+} from './vault/index.js';
+
 // Re-export commonly used viem types
 export type { Address, Hash, Hex } from 'viem';

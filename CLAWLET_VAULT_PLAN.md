@@ -322,16 +322,16 @@ if (await agentSDK.isPaused(vaultId)) {
 
 ## Implementation Phases
 
-### Phase 1: Smart Contract (Week 1)
-- [ ] Write ClawletVault.sol
-- [ ] Unit tests (Foundry/Hardhat)
+### Phase 1: Smart Contract (Week 1) ✅
+- [x] Write ClawletVault.sol
+- [x] Unit tests (Foundry)
 - [ ] Local deployment testing
 - [ ] Gas optimization
 
-### Phase 2: SDK Integration (Week 1-2)
-- [ ] Create `src/vault/` module
-- [ ] ClawletVaultSDK class
-- [ ] TypeScript types
+### Phase 2: SDK Integration (Week 1-2) ✅
+- [x] Create `src/vault/` module
+- [x] ClawletVaultSDK class
+- [x] TypeScript types
 - [ ] Integration tests
 
 ### Phase 3: Deployment (Week 2)
