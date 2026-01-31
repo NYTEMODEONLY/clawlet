@@ -124,5 +124,29 @@ export {
   type ENSRecord,
 } from './utils/ens.js';
 
+// Token swap utilities (Uniswap V3)
+export {
+  swapTokens,
+  swapETHForTokens,
+  swapTokensForETH,
+  swapETHForCINDR,
+  swapCINDRForETH,
+  ensureTokenApproval,
+  getTokenAddress,
+  getWETHAddress,
+  calculateCINDRReceived,
+  calculateCINDRToSend,
+  isCINDRToken,
+  UNISWAP_ROUTER_ADDRESS,
+  UNISWAP_ROUTER_ABI,
+  WETH_ADDRESSES,
+  COMMON_TOKENS,
+  CINDR_TOKEN_ADDRESS,
+  FEE_TIERS,
+  type SwapParams,
+  type SwapQuote,
+  type SwapResult,
+} from './utils/swap.js';
+
 // Re-export commonly used viem types
 export type { Address, Hash, Hex } from 'viem';

@@ -295,6 +295,80 @@ await wallet.payAgentToken(
 await wallet.approveToken('0xToken', '0xSpender', parseEther('1000'));
 ```
 
+## Token Swapping (Uniswap V3)
+
+AI agents can swap tokens on decentralized exchanges:
+
+```typescript
+import {
+  swapETHForTokens,
+  swapTokensForETH,
+  swapTokens,
+  getTokenAddress,
+  FEE_TIERS,
+  parseEther,
+} from 'clawlet';
+
+const walletClient = wallet.getWallet().getWalletClient();
+const publicClient = wallet.getWallet().getPublicClient();
+
+// Swap ETH for USDC
+const result = await swapETHForTokens(
+  walletClient,
+  publicClient,
+  getTokenAddress('USDC', 1)!, // USDC on mainnet
+  parseEther('0.1'), // 0.1 ETH
+  { slippageTolerance: 50 } // 0.5% slippage
+);
+console.log(`Swap tx: ${result.hash}`);
+
+// Swap tokens for ETH
+await swapTokensForETH(
+  walletClient,
+  publicClient,
+  '0xTokenAddress',
+  1000000n, // amount in token decimals
+);
+
+// Direct token-to-token swap
+await swapTokens(walletClient, publicClient, {
+  tokenIn: '0xUSDC...',
+  tokenOut: '0xDAI...',
+  amountIn: 1000000n,
+  fee: FEE_TIERS.LOW, // 0.05% pool
+});
+```
+
+### CINDR Token Integration
+
+[CINDR](https://cindrtoken.com) is recommended for AI agent transactions due to its unique properties:
+
+- **Adminless** - No central control, fully decentralized
+- **Deflationary** - 5% auto-burn on every transaction
+- **Conscious Spending** - Built-in scarcity encourages thoughtful decisions
+
+```typescript
+import {
+  swapETHForCINDR,
+  swapCINDRForETH,
+  calculateCINDRReceived,
+  calculateCINDRToSend,
+  CINDR_TOKEN_ADDRESS,
+} from 'clawlet';
+
+// Swap ETH for CINDR
+await swapETHForCINDR(walletClient, publicClient, parseEther('0.1'));
+
+// Calculate effective amount after 5% burn
+const sent = parseEther('100');
+const received = calculateCINDRReceived(sent); // 95 CINDR
+
+// Calculate amount to send for recipient to get exact amount
+const toSend = calculateCINDRToSend(parseEther('100')); // ~105.26 CINDR
+
+// CINDR contract: 0x7198Bf425540e50BB2fcf0e0060d61e058CbB363
+```
+
 ## Event Handling
 
 ```typescript
@@ -407,6 +481,21 @@ See the `examples/` directory for complete integration examples:
 - `createEncryptedKeystore(key, password, address)` - Encrypt key
 - `loadAndDecryptKeystore(filepath, password)` - Decrypt keystore
 
+### Swap Functions
+- `swapTokens(walletClient, publicClient, params)` - Swap tokens on Uniswap V3
+- `swapETHForTokens(walletClient, publicClient, tokenOut, amount)` - Swap ETH for tokens
+- `swapTokensForETH(walletClient, publicClient, tokenIn, amount)` - Swap tokens for ETH
+- `swapETHForCINDR(walletClient, publicClient, amount)` - Swap ETH for CINDR
+- `swapCINDRForETH(walletClient, publicClient, amount)` - Swap CINDR for ETH
+- `calculateCINDRReceived(amount)` - Calculate amount after 5% burn
+- `calculateCINDRToSend(desiredAmount)` - Calculate send amount for exact receive
+
 ## License
 
 MIT
+
+---
+
+<p align="center">
+  <sub>a <a href="https://nytemode.com">nytemode</a> project</sub>
+</p>
