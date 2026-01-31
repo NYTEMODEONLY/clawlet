@@ -82,5 +82,38 @@ export {
   loadAndDecryptKeystore,
 } from './utils/keystore.js';
 
+// Payment watcher utilities
+export {
+  createPaymentWatcher,
+  createTokenWatcher,
+  formatPaymentEvent,
+  formatTokenTransferEvent,
+  type PaymentEvent,
+  type PaymentWatcherConfig,
+  type TokenTransferEvent,
+  type TokenWatcherConfig,
+} from './utils/payment-watcher.js';
+
+// Trust cache utilities
+export {
+  TrustCache,
+  TrustList,
+  type TrustCacheConfig,
+  type TrustListEntry,
+} from './utils/trust-cache.js';
+
+// Batch payment utilities
+export {
+  batchPay,
+  calculateBatchTotal,
+  validateBatch,
+  splitPayment,
+  prepareMulticall,
+  MULTICALL3_ADDRESS,
+  MULTICALL3_ABI,
+  type BatchPayment,
+  type BatchPaymentResult,
+} from './utils/batch.js';
+
 // Re-export commonly used viem types
 export type { Address, Hash, Hex } from 'viem';
