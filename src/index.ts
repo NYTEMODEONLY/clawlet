@@ -70,5 +70,17 @@ export {
   ERC20_ABI,
 } from './constants/erc8004.js';
 
+// Keystore utilities
+export {
+  encryptPrivateKey,
+  decryptKeystore,
+  saveKeystore,
+  loadKeystore,
+  listKeystores,
+  getKeystoreDir,
+  createEncryptedKeystore,
+  loadAndDecryptKeystore,
+} from './utils/keystore.js';
+
 // Re-export commonly used viem types
 export type { Address, Hash, Hex } from 'viem';
